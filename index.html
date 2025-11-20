@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InterviewFlow - Interview Prep Tool</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        /* Custom Scrollbar for review section */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111827; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #374151; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4b5563; 
+        }
+        
+        /* Video Mirroring */
+        .video-mirror {
+            transform: scaleX(-1);
+        }
+
+        /* Animation for recording indicator */
+        @keyframes pulse-red {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .animate-pulse-red {
+            animation: pulse-red 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white font-sans antialiased h-screen overflow-hidden flex flex-col">
+
+    <!-- ========================== 
+         1. WELCOME SCREEN 
+    =========================== -->
+    <div id="welcome-screen" class="flex-1 flex flex-col items-center justify-center p-6 text-center overflow-y-auto">
+        <div class="max-w-2xl w-full bg-gray-800 p-8 rounded-2xl shadow-2xl border border-gray-700">
+            <div class="bg-indigo-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
+                <i class="ph-fill ph-video-camera text-3xl text-white"></i>
+            </div>
+            <h1 class="text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-cyan-400">
+                InterviewFlow
+            </h1>
+            <p class="text-gray-400 mb-8 text-lg leading-relaxed">
+                Master your interview skills with a simulated video call. 
+                We'll ask you questions, record your answers, and let you review your performance.
+            </p>
+
+            <!-- Features Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 text-left">
+                <div class="bg-gray-900/50 p-4 rounded-xl border border-gray-700">
+                    <i class="ph-fill ph-user text-indigo-400 text-2xl mb-2"></i>
+                    <h3 class="font-semibold text-white">Self-Paced</h3>
+                    <p class="text-sm text-gray-500">Take your time to answer common questions.</p>
+                </div>
+                <div class="bg-gray-900/50 p-4 rounded-xl border border-gray-700">
+                    <i class="ph-fill ph-speaker-high text-indigo-400 text-2xl mb-2"></i>
+                    <h3 class="font-semibold text-white">AI Narrator</h3>
+                    <p class="text-sm text-gray-500">Hear questions spoken aloud for realism.</p>
+                </div>
+                <div class="bg-gray-900/50 p-4 rounded-xl border border-gray-700">
+                    <i class="ph-fill ph-play-circle text-indigo-400 text-2xl mb-2"></i>
+                    <h3 class="font-semibold text-white">Playback</h3>
+                    <p class="text-sm text-gray-500">Watch yourself back to improve.</p>
+                </div>
+            </div>
+
+            <!-- Error Message Area -->
+            <div id="error-msg" class="hidden mb-6 bg-red-900/30 border border-red-500/50 text-red-200 p-4 rounded-lg flex items-center gap-3">
+                <i class="ph-fill ph-warning-circle text-xl"></i>
+                <span id="error-text">Error message here</span>
+            </div>
+
+            <!-- Action Buttons -->
+            <button id="btn-req-perm" onclick="requestPermissions()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-xl font-bold text-lg transition-all duration-200 flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-indigo-500/20">
+                <span>Allow Camera Access</span>
+                <i class="ph-bold ph-gear"></i>
+            </button>
+
+            <button id="btn-start-session" onclick="startSession()" class="hidden w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-bold text-lg transition-all duration-200 flex items-center justify-center gap-2">
+                <span>Start Session</span>
+                <i class="ph-bold ph-caret-right"></i>
+            </button>
+
+            <!-- Preview Video -->
+            <div id="preview-container" class="hidden mt-6 relative w-64 h-40 bg-black rounded-lg overflow-hidden mx-auto border-2 border-green-500/50 shadow-lg">
+                <video id="preview-video" autoplay muted playsinline class="w-full h-full object-cover video-mirror"></video>
+                <div class="absolute bottom-2 left-2 bg-black/60 px-2 py-1 rounded text-xs text-white flex items-center gap-1">
+                    <i class="ph-fill ph-check-circle text-green-400"></i> Ready
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================== 
+         2. INTERVIEW SCREEN 
+    =========================== -->
+    <div id="interview-screen" class="hidden relative h-full w-full bg-black flex-col">
+        
+        <!-- Main Video Feed -->
+        <div class="relative flex-1 flex items-center justify-center overflow-hidden">
+            <video id="main-video" autoplay muted playsinline class="absolute w-full h-full object-cover video-mirror"></video>
+            
+            <!-- Audio Visualizer Canvas -->
+            <div class="absolute bottom-24 left-1/2 transform -translate-x-1/2 w-64 md:w-96 z-20 opacity-80">
+                <canvas id="audio-visualizer" width="300" height="50" class="w-full h-12 rounded"></canvas>
+            </div>
+
+            <!-- Recording Indicator -->
+            <div id="recording-badge" class="hidden absolute top-6 right-6 flex items-center gap-2 bg-red-600/90 text-white px-4 py-2 rounded-full shadow-lg backdrop-blur-sm z-20">
+                <div class="w-3 h-3 bg-white rounded-full animate-pulse-red"></div>
+                <span class="text-sm font-bold tracking-wider">REC</span>
+            </div>
+
+            <!-- Question Overlay -->
+            <div class="absolute top-6 left-6 right-16 md:right-auto md:w-[30rem] z-20">
+                <div class="bg-gray-900/90 backdrop-blur-md border-l-4 border-indigo-500 text-white p-6 rounded-r-xl shadow-2xl transition-all duration-500" id="question-card">
+                    <span id="question-counter" class="text-indigo-400 text-xs font-bold uppercase tracking-widest mb-1 block">
+                        Question 1 of 5
+                    </span>
+                    <h2 id="question-text" class="text-xl md:text-2xl font-semibold leading-tight">
+                        Loading question...
+                    </h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls Bar -->
+        <div class="h-24 bg-gray-800 border-t border-gray-700 flex items-center justify-between px-4 md:px-8 z-30 shrink-0">
+            <!-- Mic Status -->
+            <div class="flex items-center gap-2 text-gray-400">
+                <div id="mic-status-dot" class="w-3 h-3 rounded-full bg-red-500"></div>
+                <span id="mic-status-text" class="text-sm font-mono hidden md:inline">Mic Ready</span>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center gap-4">
+                <button onclick="endInterviewEarly()" class="bg-red-500/20 hover:bg-red-500/30 text-red-400 p-4 rounded-full transition-colors border border-red-500/30" title="End Interview">
+                    <i class="ph-fill ph-phone-slash text-xl"></i>
+                </button>
+
+                <button onclick="nextQuestion()" id="btn-next" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-full font-bold shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2 text-lg">
+                    <span id="btn-next-text">Next Question</span>
+                    <i class="ph-bold ph-caret-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================== 
+         3. REVIEW SCREEN 
+    =========================== -->
+    <div id="review-screen" class="hidden min-h-screen bg-gray-900 text-white p-6 md:p-12 overflow-y-auto">
+        <div class="max-w-6xl mx-auto">
+            <header class="mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 class="text-3xl font-bold text-white mb-2">Session Review</h1>
+                    <p class="text-gray-400">Review your recorded answers. Check for eye contact, pacing, and clarity.</p>
+                </div>
+                <button onclick="restartApp()" class="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-white px-5 py-2.5 rounded-lg border border-gray-600 transition-colors">
+                    <i class="ph-bold ph-arrow-counter-clockwise"></i> Start New Session
+                </button>
+            </header>
+
+            <div id="recordings-grid" class="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-12">
+                <!-- Dynamic content injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================== 
+         LOGIC / JAVASCRIPT 
+    =========================== -->
+    <script>
+        // --- Configuration ---
+        const QUESTIONS = [
+            { category: "Intro", text: "Tell me a little bit about yourself." },
+            { category: "Behavioral", text: "Describe a challenging situation you faced at work and how you handled it." },
+            { category: "Technical", text: "What is your preferred workflow when starting a new project?" },
+            { category: "Behavioral", text: "Where do you see yourself in five years?" },
+            { category: "Closing", text: "Do you have any questions for us?" }
+        ];
+
+        // --- State ---
+        let currentStream = null;
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let recordings = {}; // { index: blobUrl }
+        let currentQIndex = 0;
+        let audioContext = null;
+        let animationId = null;
+
+        // --- DOM Elements ---
+        const screens = {
+            welcome: document.getElementById('welcome-screen'),
+            interview: document.getElementById('interview-screen'),
+            review: document.getElementById('review-screen')
+        };
+        
+        const videoPreview = document.getElementById('preview-video');
+        const videoMain = document.getElementById('main-video');
+        const errorMsg = document.getElementById('error-msg');
+        const btnReqPerm = document.getElementById('btn-req-perm');
+        const btnStart = document.getElementById('btn-start-session');
+        const previewContainer = document.getElementById('preview-container');
+        
+        // --- Helper: Show Screen ---
+        function showScreen(name) {
+            Object.values(screens).forEach(el => el.classList.add('hidden'));
+            screens[name].classList.remove('hidden');
+            
+            // Fix flex display for welcome screen specifically
+            if(name === 'welcome') screens.welcome.classList.add('flex');
+            else screens.welcome.classList.remove('flex');
+
+            // Fix flex display for interview screen
+            if(name === 'interview') screens.interview.classList.add('flex');
+            else screens.interview.classList.remove('flex');
+        }
+
+        // --- 1. Camera & Audio Setup ---
+        async function requestPermissions() {
+            try {
+                errorMsg.classList.add('hidden');
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                currentStream = stream;
+                
+                // Attach to preview
+                videoPreview.srcObject = stream;
+                
+                // UI Updates
+                btnReqPerm.classList.add('hidden');
+                btnStart.classList.remove('hidden');
+                previewContainer.classList.remove('hidden');
+
+            } catch (err) {
+                console.error("Media Error:", err);
+                document.getElementById('error-text').textContent = "Could not access camera/mic. Please allow permissions.";
+                errorMsg.classList.remove('hidden');
+            }
+        }
+
+        function stopCamera() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
+            if (animationId) cancelAnimationFrame(animationId);
+            if (audioContext) audioContext.close();
+        }
+
+        // --- 2. Interview Logic ---
+
+        function startSession() {
+            if (!currentStream) return;
+            
+            showScreen('interview');
+            videoMain.srcObject = currentStream;
+            
+            // Init Audio Visualizer
+            setupAudioVisualizer(currentStream);
+            
+            // Reset State
+            currentQIndex = 0;
+            recordings = {};
+            
+            // Start Flow (Short delay to let UI settle)
+            setTimeout(() => {
+                loadQuestion(0);
+            }, 1000);
+        }
+
+        function loadQuestion(index) {
+            const q = QUESTIONS[index];
+            
+            // Update UI
+            document.getElementById('question-counter').innerText = `Question ${index + 1} of ${QUESTIONS.length}`;
+            document.getElementById('question-text').innerText = q.text;
+            
+            // Update Button Text
+            const btnText = document.getElementById('btn-next-text');
+            btnText.innerText = (index === QUESTIONS.length - 1) ? 'Finish Interview' : 'Next Question';
+
+            // Speak
+            speakText(q.text);
+
+            // Start Recording
+            startRecording();
+        }
+
+        function nextQuestion() {
+            stopRecording();
+            window.speechSynthesis.cancel();
+
+            if (currentQIndex < QUESTIONS.length - 1) {
+                currentQIndex++;
+                loadQuestion(currentQIndex);
+            } else {
+                finishInterview();
+            }
+        }
+
+        function endInterviewEarly() {
+            stopRecording();
+            window.speechSynthesis.cancel();
+            finishInterview();
+        }
+
+        function finishInterview() {
+            showScreen('review');
+            stopCamera(); // Stop stream to release camera light
+            renderReviewPage();
+        }
+
+        function restartApp() {
+            stopCamera();
+            window.speechSynthesis.cancel();
+            recordings = {};
+            currentQIndex = 0;
+            
+            // Reset UI
+            btnReqPerm.classList.remove('hidden');
+            btnStart.classList.add('hidden');
+            previewContainer.classList.add('hidden');
+            
+            showScreen('welcome');
+        }
+
+        // --- 3. Recording Logic ---
+
+        function startRecording() {
+            if (!currentStream) return;
+
+            recordedChunks = [];
+            try {
+                mediaRecorder = new MediaRecorder(currentStream, { mimeType: 'video/webm' });
+                
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                    }
+                };
+
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                    const url = URL.createObjectURL(blob);
+                    recordings[currentQIndex] = url;
+                };
+
+                mediaRecorder.start();
+                
+                // Update UI
+                document.getElementById('recording-badge').classList.remove('hidden');
+                document.getElementById('mic-status-dot').classList.remove('bg-red-500');
+                document.getElementById('mic-status-dot').classList.add('bg-green-500');
+                document.getElementById('mic-status-text').innerText = "Mic Active";
+
+            } catch (e) {
+                console.error("Recorder Init Error:", e);
+            }
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+            }
+            
+            // Update UI
+            document.getElementById('recording-badge').classList.add('hidden');
+            document.getElementById('mic-status-dot').classList.add('bg-red-500');
+            document.getElementById('mic-status-dot').classList.remove('bg-green-500');
+            document.getElementById('mic-status-text').innerText = "Mic Off";
+        }
+
+        // --- 4. Text to Speech ---
+        function speakText(text) {
+            if (!('speechSynthesis' in window)) return;
+            
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            
+            // Try to get Google US English or default
+            const voices = window.speechSynthesis.getVoices();
+            const voice = voices.find(v => v.name.includes('Google') && v.lang.includes('en')) || voices[0];
+            if(voice) utterance.voice = voice;
+            
+            utterance.rate = 1;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // --- 5. Audio Visualizer ---
+        function setupAudioVisualizer(stream) {
+            const canvas = document.getElementById('audio-visualizer');
+            const ctx = canvas.getContext('2d');
+            
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const source = audioContext.createMediaStreamSource(stream);
+            const analyser = audioContext.createAnalyser();
+            
+            analyser.fftSize = 256;
+            source.connect(analyser);
+            
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+
+            function draw() {
+                animationId = requestAnimationFrame(draw);
+                analyser.getByteFrequencyData(dataArray);
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Modern bar visualizer
+                const barWidth = (canvas.width / bufferLength) * 2.5;
+                let barHeight;
+                let x = 0;
+
+                for (let i = 0; i < bufferLength; i++) {
+                    barHeight = dataArray[i] / 2;
+                    
+                    // Gradient color (Purple to Blue)
+                    const r = barHeight + 25 * (i / bufferLength);
+                    const g = 250 * (i / bufferLength);
+                    const b = 50;
+
+                    ctx.fillStyle = `rgb(${r},${g},${b})`;
+                    // Rounded bars top
+                    ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+                    x += barWidth + 2;
+                }
+            }
+            draw();
+        }
+
+        // --- 6. Review Render ---
+        function renderReviewPage() {
+            const container = document.getElementById('recordings-grid');
+            container.innerHTML = ''; // Clear previous
+
+            QUESTIONS.forEach((q, idx) => {
+                const hasVideo = recordings[idx] !== undefined;
+                const videoSrc = hasVideo ? recordings[idx] : '';
+
+                // Create Card HTML
+                const card = document.createElement('div');
+                card.className = "bg-gray-800 rounded-xl overflow-hidden border border-gray-700 shadow-xl";
+                
+                card.innerHTML = `
+                    <div class="p-4 border-b border-gray-700 bg-gray-800/50 flex justify-between items-start gap-4">
+                        <div>
+                            <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider block mb-1">${q.category}</span>
+                            <h3 class="font-semibold text-lg leading-snug text-gray-100">${q.text}</h3>
+                        </div>
+                        <div class="bg-gray-900 text-gray-500 text-xs font-mono px-2 py-1 rounded border border-gray-700">Q${idx+1}</div>
+                    </div>
+                    
+                    <div class="aspect-video bg-black relative group w-full">
+                        ${hasVideo 
+                            ? `<video src="${videoSrc}" controls class="w-full h-full object-cover"></video>` 
+                            : `<div class="w-full h-full flex flex-col items-center justify-center text-gray-500">
+                                 <i class="ph-fill ph-video-slash text-4xl mb-2 opacity-50"></i>
+                                 <p>No recording available</p>
+                               </div>`
+                        }
+                    </div>
+                    
+                    <div class="p-4 bg-gray-800/50">
+                        <h4 class="text-sm font-bold text-gray-400 mb-2 uppercase tracking-wide">Checklist</h4>
+                        <div class="space-y-2">
+                            <label class="flex items-center gap-3 text-gray-300 text-sm cursor-pointer hover:text-white transition-colors">
+                                <input type="checkbox" class="w-4 h-4 rounded border-gray-600 bg-gray-700 text-indigo-600 focus:ring-indigo-500">
+                                Did I answer clearly?
+                            </label>
+                            <label class="flex items-center gap-3 text-gray-300 text-sm cursor-pointer hover:text-white transition-colors">
+                                <input type="checkbox" class="w-4 h-4 rounded border-gray-600 bg-gray-700 text-indigo-600 focus:ring-indigo-500">
+                                Was my pacing okay?
+                            </label>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // --- Init ---
+        // Pre-fetch voices to avoid empty list on first click
+        if('speechSynthesis' in window) {
+            window.speechSynthesis.getVoices();
+        }
+    </script>
+</body>
+</html>
+

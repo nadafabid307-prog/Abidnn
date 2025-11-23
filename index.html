@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Single File CRUD Database</title>
+    <style>
+
+        /* ---- NEW ANIMATED BACKGROUND ---- */
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            height: 100vh;
+            background: linear-gradient(135deg, #3b82f6, #9333ea, #ef4444);
+            background-size: 300% 300%;
+            animation: bgMove 10s infinite alternate ease-in-out;
+            display: flex;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        @keyframes bgMove {
+            0% { background-position: left top; }
+            50% { background-position: right center; }
+            100% { background-position: left bottom; }
+        }
+
+        /* ---- CARD ---- */
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: #ffffffcc;
+            backdrop-filter: blur(8px);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        }
+
+        h2 { margin-top: 0; color: #1f2937; }
+
+        /* Form */
+        .form-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 10px;
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid #d1d5db;
+        }
+
+        input {
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        #submitBtn { background-color: #2563eb; color: white; }
+        #submitBtn.update-mode { background-color: #16a34a; }
+
+        /* Table */
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+        th { background-color: #f9fafb; color: #4b5563; }
+
+        th:first-child, td:first-child { width: 50px; text-align: center; }
+
+        .action-btn {
+            padding: 6px 12px;
+            font-size: 14px;
+        }
+        
+        .edit-btn { background-color: #f59e0b; color: white; }
+        .delete-btn { background-color: #dc2626; color: white; }
+
+        .empty-state {
+            text-align: center;
+            color: #6b7280;
+            padding: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>📦 Data Manager</h2>
+    
+    <div class="form-group">
+        <input type="text" id="nameInput" placeholder="Item Name" required>
+        <input type="text" id="roleInput" placeholder="Role / Description" required>
+        <button id="submitBtn" onclick="handleSubmit()">Add Item</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Role</th>
+                <th style="text-align: right;">Actions</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+
+    <div id="emptyState" class="empty-state">No data found. Add an item above.</div>
+</div>
+
+<script>
+    const DB_NAME = 'my_crud_db_v2';
+    let currentEditId = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        renderTable();
+    });
+
+    function getData() {
+        const d = localStorage.getItem(DB_NAME);
+        return d ? JSON.parse(d) : [];
+    }
+
+    function normalizeIDs(data) {
+        return data.map((item, index) => ({
+            ...item,
+            id: index + 1
+        }));
+    }
+
+    function saveData(data) {
+        data = normalizeIDs(data);
+        localStorage.setItem(DB_NAME, JSON.stringify(data));
+        renderTable();
+    }
+
+    function handleSubmit() {
+        const name = nameInput.value.trim();
+        const role = roleInput.value.trim();
+
+        if (!name || !role) {
+            alert("Please fill all fields.");
+            return;
+        }
+
+        let data = getData();
+
+        if (currentEditId) {
+            const index = data.findIndex(i => i.id === currentEditId);
+            data[index].name = name;
+            data[index].role = role;
+            resetForm();
+        } else {
+            data.push({
+                id: data.length + 1,
+                name,
+                role
+            });
+        }
+
+        saveData(data);
+        nameInput.value = "";
+        roleInput.value = "";
+    }
+
+    function deleteItem(id) {
+        if (!confirm("Delete this item?")) return;
+        let data = getData().filter(i => i.id !== id);
+        saveData(data);
+        if (currentEditId === id) resetForm();
+    }
+
+    function editItem(id) {
+        const item = getData().find(i => i.id === id);
+        if (!item) return;
+
+        nameInput.value = item.name;
+        roleInput.value = item.role;
+
+        submitBtn.textContent = "Update Item";
+        submitBtn.classList.add("update-mode");
+
+        currentEditId = id;
+    }
+
+    function resetForm() {
+        nameInput.value = "";
+        roleInput.value = "";
+        submitBtn.textContent = "Add Item";
+        submitBtn.classList.remove("update-mode");
+        currentEditId = null;
+    }
+
+    function renderTable() {
+        const data = getData();
+        const tbody = document.getElementById("tableBody");
+        const emptyState = document.getElementById("emptyState");
+
+        tbody.innerHTML = "";
+
+        if (data.length === 0) {
+            emptyState.style.display = "block";
+            return;
+        }
+
+        emptyState.style.display = "none";
+
+        data.forEach((item, index) => {
+            const row = document.createElement("tr");
+
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td><strong>${escapeHtml(item.name)}</strong></td>
+                <td>${escapeHtml(item.role)}</td>
+                <td style="text-align: right;">
+                    <button class="action-btn edit-btn" onclick="editItem(${item.id})">Edit</button>
+                    <button class="action-btn delete-btn" onclick="deleteItem(${item.id})">Delete</button>
+                </td>
+            `;
+
+            tbody.appendChild(row);
+        });
+    }
+
+    function escapeHtml(text) {
+        return text.replace(/[&<>"']/g, m => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;',
+            '"': '&quot;', "'": '&#039;'
+        })[m]);
+    }
+</script>
+
+</body>
+</html>

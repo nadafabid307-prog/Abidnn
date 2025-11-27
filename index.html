@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Attendance Tracker</title>
+    <style>
+        /* --- CSS for Styling --- */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            text-align: center;
+            color: #007bff;
+        }
+        .summary {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background-color: #e9f7ff;
+        }
+        .summary div {
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+        #attendance-list {
+            list-style: none;
+            padding: 0;
+        }
+        #attendance-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #eee;
+        }
+        #attendance-list li:last-child {
+            border-bottom: none;
+        }
+        .student-name {
+            flex-grow: 1;
+        }
+        .status-button {
+            padding: 5px 10px;
+            margin-left: 10px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        .present {
+            background-color: #28a745;
+            color: white;
+        }
+        .absent {
+            background-color: #dc3545;
+            color: white;
+        }
+        .neutral {
+            background-color: #ffc107;
+            color: #333;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        .input-group input, .input-group button {
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        .input-group button {
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>KLE BK BCA College Chikodi</h1>
+        <h2>Student Attendance</h2>
+
+        <div class="input-group">
+            <label for="total-students-input">Enter **Total Students**:</label>
+            <input type="number" id="total-students-input" min="1" value="10">
+            <button onclick="generateStudentList()">Generate List</button>
+        </div>
+
+        <hr>
+
+        <div class="summary">
+            <div>Total Students: <span id="total-students">0</span></div>
+            <div>Total **Present**: <span id="total-present">0</span></div>
+            <div>Total **Absent**: <span id="total-absent">0</span></div>
+        </div>
+
+        <hr>
+
+        <h3>Student Roster</h3>
+        <ul id="attendance-list">
+            </ul>
+    </div>
+
+    <script>
+        const totalStudentsSpan = document.getElementById('total-students');
+        const totalPresentSpan = document.getElementById('total-present');
+        const totalAbsentSpan = document.getElementById('total-absent');
+        const attendanceList = document.getElementById('attendance-list');
+        const totalStudentsInput = document.getElementById('total-students-input');
+        
+        // Initial state of the attendance data
+        let attendanceData = [];
+
+        // Function to calculate and update the summary
+        function updateSummary() {
+            // Count Present and Absent students from the current data
+            const presentCount = attendanceData.filter(student => student.status === 'present').length;
+            const absentCount = attendanceData.filter(student => student.status === 'absent').length;
+
+            // Update the display
+            totalStudentsSpan.textContent = attendanceData.length;
+            totalPresentSpan.textContent = presentCount;
+            totalAbsentSpan.textContent = absentCount;
+        }
+
+        // Function to change a student's status
+        function toggleStatus(studentIndex) {
+            const currentStatus = attendanceData[studentIndex].status;
+            let newStatus;
+
+            // Simple state machine: neutral -> present -> absent -> neutral
+            if (currentStatus === 'neutral') {
+                newStatus = 'present';
+            } else if (currentStatus === 'present') {
+                newStatus = 'absent';
+            } else {
+                newStatus = 'neutral';
+            }
+
+            // Update data and re-render the list
+            attendanceData[studentIndex].status = newStatus;
+            renderStudentList();
+        }
+
+        // Function to create and display the student list (HTML)
+        function renderStudentList() {
+            attendanceList.innerHTML = ''; // Clear existing list
+            
+            attendanceData.forEach((student, index) => {
+                const listItem = document.createElement('li');
+                const studentNameElement = document.createElement('span');
+                studentNameElement.classList.add('student-name');
+                // You can replace "Student" with actual names if you have them!
+                studentNameElement.textContent = `Roll No: ${student.rollNo} - Student ${student.rollNo}`;
+
+                const statusButton = document.createElement('button');
+                statusButton.classList.add('status-button');
+                statusButton.onclick = () => toggleStatus(index);
+
+                // Set button text and color based on status
+                if (student.status === 'present') {
+                    statusButton.textContent = 'Present';
+                    statusButton.classList.add('present');
+                    statusButton.classList.remove('absent', 'neutral');
+                } else if (student.status === 'absent') {
+                    statusButton.textContent = 'Absent';
+                    statusButton.classList.add('absent');
+                    statusButton.classList.remove('present', 'neutral');
+                } else {
+                    statusButton.textContent = 'Mark Status';
+                    statusButton.classList.add('neutral');
+                    statusButton.classList.remove('present', 'absent');
+                }
+
+                listItem.appendChild(studentNameElement);
+                listItem.appendChild(statusButton);
+                attendanceList.appendChild(listItem);
+            });
+
+            updateSummary(); // Update the summary whenever the list is re-rendered
+        }
+
+        // Function to generate the initial student list based on the input number
+        function generateStudentList() {
+            const totalStudents = parseInt(totalStudentsInput.value);
+            
+            if (isNaN(totalStudents) || totalStudents <= 0) {
+                alert("Please enter a valid number of students (1 or more).");
+                return;
+            }
+
+            // Create new attendance data array
+            attendanceData = [];
+            for (let i = 1; i <= totalStudents; i++) {
+                attendanceData.push({
+                    rollNo: i,
+                    status: 'neutral' // 'neutral', 'present', or 'absent'
+                });
+            }
+
+            renderStudentList();
+        }
+
+        // Run on page load: generate a default list
+        window.onload = generateStudentList;
+
+    </script>
+</body>
+</html>

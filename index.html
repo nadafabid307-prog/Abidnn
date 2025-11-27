@@ -67,7 +67,7 @@
             background-color: #f0fdfc;
         }
 
-        /* --- Status Specific Styling (IMPORTANT for JavaScript) --- */
+        /* --- Status Specific Styling --- */
         .status-present {
             color: #2e7d32; /* Green for Present */
             font-weight: bold;
@@ -102,16 +102,13 @@
             <tbody>
                 <tr>
                     <td>**Total Student Strength**</td>
-                    <td class="metric-value" id="totalStudents">0</td> 
-                </tr>
+                    <td class="metric-value">55</td> </tr>
                 <tr>
                     <td>**Total Present**</td>
-                    <td class="metric-value status-present" id="totalPresent">0</td> 
-                </tr>
+                    <td class="metric-value status-present">48</td> </tr>
                 <tr>
                     <td>**Total Absent**</td>
-                    <td class="metric-value status-absent" id="totalAbsent">0</td> 
-                </tr>
+                    <td class="metric-value status-absent">7</td> </tr>
             </tbody>
         </table>
 
@@ -126,7 +123,7 @@
                     <th>Status</th>
                 </tr>
             </thead>
-            <tbody id="studentListBody">
+            <tbody>
                 <tr>
                     <td>BCA21001</td>
                     <td>Akash S. Patil</td>
@@ -147,63 +144,11 @@
                     <td>Deepika K. Hiremath</td>
                     <td class="status-present">Present</td>
                 </tr>
-                <tr>
-                    <td>BCA21005</td>
-                    <td>Eshwar V. Naik</td>
-                    <td class="status-absent">Absent</td>
-                </tr>
-                <tr>
-                    <td>BCA21006</td>
-                    <td>Gauri H. Killedar</td>
-                    <td class="status-present">Present</td>
-                </tr>
                 </tbody>
         </table>
 
     </div>
 
-    <script>
-        function updateAttendanceTotals() {
-            // Get the main table body where student records are listed
-            const studentList = document.getElementById('studentListBody');
-            
-            // Get all rows (students) in the list
-            const rows = studentList.getElementsByTagName('tr');
-            
-            let totalStudents = rows.length;
-            let totalPresent = 0;
-            let totalAbsent = 0;
-
-            // Loop through each student row
-            for (let i = 0; i < rows.length; i++) {
-                // The status is in the third cell (index 2) of the row
-                const statusCell = rows[i].getElementsByTagName('td')[2];
-                
-                if (statusCell) {
-                    // Check the CSS class to determine status
-                    if (statusCell.classList.contains('status-present')) {
-                        totalPresent++;
-                    } else if (statusCell.classList.contains('status-absent')) {
-                        totalAbsent++;
-                    }
-                    // The 'Present' or 'Absent' text can also be used, but the class is cleaner
-                    // if (statusCell.textContent.trim() === 'Present') { ... }
-                }
-            }
-
-            // Update the Summary Table using the IDs
-            document.getElementById('totalStudents').textContent = totalStudents;
-            document.getElementById('totalPresent').textContent = totalPresent;
-            document.getElementById('totalAbsent').textContent = totalAbsent;
-
-            // For dynamic coloring of the summary numbers (optional, but good practice)
-            document.getElementById('totalPresent').classList.toggle('status-present', totalPresent > 0);
-            document.getElementById('totalAbsent').classList.toggle('status-absent', totalAbsent > 0);
-        }
-
-        // Run the function when the page loads
-        updateAttendanceTotals();
-    </script>
-
 </body>
 </html>
+

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KLE B.K. BCA College - Attendance Dashboard</title>
+    <style>
+        /* --- Basic Styling for the Page --- */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7f6;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 50px;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 800px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            padding: 30px;
+        }
+
+        /* --- Header Styling --- */
+        h1 {
+            color: #004d40; /* Dark Teal for College Name */
+            text-align: center;
+            margin-bottom: 5px;
+            font-size: 1.8em;
+        }
+
+        h2 {
+            color: #ff6f00; /* Bright Orange for Title */
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+        }
+
+        /* --- Attendance Data Table Styling --- */
+        .attendance-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .attendance-table th, .attendance-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            font-size: 1.1em;
+        }
+
+        .attendance-table th {
+            background-color: #e0f2f1; /* Light Teal Background for Headers */
+            color: #004d40;
+            font-weight: bold;
+        }
+
+        .attendance-table tr:hover {
+            background-color: #f0fdfc;
+        }
+
+        /* --- Status Specific Styling (IMPORTANT for JavaScript) --- */
+        .status-present {
+            color: #2e7d32; /* Green for Present */
+            font-weight: bold;
+        }
+
+        .status-absent {
+            color: #c62828; /* Red for Absent */
+            font-weight: bold;
+        }
+
+        /* --- Key Metric Styling --- */
+        .metric-value {
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <h1>KLE B.K. BCA College, Chikkodi</h1>
+        <h2>Student Attendance Dashboard</h2>
+
+        <table class="attendance-table">
+            <thead>
+                <tr>
+                    <th>Metric</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>**Total Student Strength**</td>
+                    <td class="metric-value" id="totalStudents">0</td> 
+                </tr>
+                <tr>
+                    <td>**Total Present**</td>
+                    <td class="metric-value status-present" id="totalPresent">0</td> 
+                </tr>
+                <tr>
+                    <td>**Total Absent**</td>
+                    <td class="metric-value status-absent" id="totalAbsent">0</td> 
+                </tr>
+            </tbody>
+        </table>
+
+        <hr>
+
+        <h3>Individual Student Status</h3>
+        <table class="attendance-table">
+            <thead>
+                <tr>
+                    <th>Roll No.</th>
+                    <th>Student Name</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="studentListBody">
+                <tr>
+                    <td>BCA21001</td>
+                    <td>Akash S. Patil</td>
+                    <td class="status-present">Present</td>
+                </tr>
+                <tr>
+                    <td>BCA21002</td>
+                    <td>Bhavana R. Kulkarni</td>
+                    <td class="status-present">Present</td>
+                </tr>
+                <tr>
+                    <td>BCA21003</td>
+                    <td>Chetan M. Desai</td>
+                    <td class="status-absent">Absent</td>
+                </tr>
+                <tr>
+                    <td>BCA21004</td>
+                    <td>Deepika K. Hiremath</td>
+                    <td class="status-present">Present</td>
+                </tr>
+                <tr>
+                    <td>BCA21005</td>
+                    <td>Eshwar V. Naik</td>
+                    <td class="status-absent">Absent</td>
+                </tr>
+                <tr>
+                    <td>BCA21006</td>
+                    <td>Gauri H. Killedar</td>
+                    <td class="status-present">Present</td>
+                </tr>
+                </tbody>
+        </table>
+
+    </div>
+
+    <script>
+        function updateAttendanceTotals() {
+            // Get the main table body where student records are listed
+            const studentList = document.getElementById('studentListBody');
+            
+            // Get all rows (students) in the list
+            const rows = studentList.getElementsByTagName('tr');
+            
+            let totalStudents = rows.length;
+            let totalPresent = 0;
+            let totalAbsent = 0;
+
+            // Loop through each student row
+            for (let i = 0; i < rows.length; i++) {
+                // The status is in the third cell (index 2) of the row
+                const statusCell = rows[i].getElementsByTagName('td')[2];
+                
+                if (statusCell) {
+                    // Check the CSS class to determine status
+                    if (statusCell.classList.contains('status-present')) {
+                        totalPresent++;
+                    } else if (statusCell.classList.contains('status-absent')) {
+                        totalAbsent++;
+                    }
+                    // The 'Present' or 'Absent' text can also be used, but the class is cleaner
+                    // if (statusCell.textContent.trim() === 'Present') { ... }
+                }
+            }
+
+            // Update the Summary Table using the IDs
+            document.getElementById('totalStudents').textContent = totalStudents;
+            document.getElementById('totalPresent').textContent = totalPresent;
+            document.getElementById('totalAbsent').textContent = totalAbsent;
+
+            // For dynamic coloring of the summary numbers (optional, but good practice)
+            document.getElementById('totalPresent').classList.toggle('status-present', totalPresent > 0);
+            document.getElementById('totalAbsent').classList.toggle('status-absent', totalAbsent > 0);
+        }
+
+        // Run the function when the page loads
+        updateAttendanceTotals();
+    </script>
+
+</body>
+</html>

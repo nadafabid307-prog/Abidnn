@@ -1,0 +1,150 @@
+:root{
+  --bg:#0f1724;
+  --card:#0b1220;
+  --accent:#7c3aed;
+  --muted:#9aa4b2;
+  --success:#16a34a;
+  --danger:#ef4444;
+  --glass: rgba(255,255,255,0.03);
+  --radius:12px;
+  --shadow: 0 6px 18px rgba(2,6,23,0.6);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+
+*{box-sizing:border-box}
+html,body{
+  height:100%;
+  margin:0;
+  background:linear-gradient(180deg,#071024 0%, #0b1220 100%);
+  color:#e6eef6;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+.site-header{
+  text-align:center;
+  padding:28px 16px 8px;
+}
+.site-header h1{margin:0;font-size:1.6rem}
+.subtitle{margin:6px 0 0;color:var(--muted)}
+
+.container{
+  max-width:920px;
+  margin:18px auto;
+  padding:0 16px 40px;
+  display:grid;
+  gap:18px;
+}
+
+.card{
+  background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-radius:var(--radius);
+  padding:18px;
+  box-shadow:var(--shadow);
+  border:1px solid rgba(255,255,255,0.03);
+}
+
+.hidden{display:none}
+
+.input-group input{
+  width:100%;
+  padding:10px 12px;
+  border-radius:8px;
+  border:1px solid rgba(255,255,255,0.04);
+  background:var(--glass);
+  color:inherit;
+}
+
+.controls{
+  margin-top:12px;
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+
+.btn{
+  padding:8px 12px;
+  border-radius:10px;
+  background:transparent;
+  color:var(--accent);
+  border:1px solid rgba(124,58,237,0.16);
+  cursor:pointer;
+}
+.btn.primary{
+  background:linear-gradient(90deg,var(--accent),#6d28d9);
+  color:white;
+  border:none;
+  box-shadow:0 6px 12px rgba(124,58,237,0.12);
+}
+.btn.danger{
+  background:linear-gradient(90deg,var(--danger),#ef4444);
+  color:white;
+  border:none;
+}
+
+/* Quiz UI */
+.quiz-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+}
+.player{font-weight:600}
+.status{flex:1;margin-left:12px}
+.progress-bar{
+  height:8px;
+  background:rgba(255,255,255,0.03);
+  border-radius:999px;
+  overflow:hidden;
+  margin-bottom:8px;
+}
+.progress-fill{
+  height:100%;
+  width:0%;
+  background: linear-gradient(90deg,var(--accent),#5b21b6);
+  transition:width .35s ease;
+}
+
+.meta{display:flex;justify-content:space-between;font-size:.9rem;color:var(--muted)}
+
+/* Question card */
+.question-card{margin-top:10px}
+.answers{list-style:none;padding:0;margin:8px 0 0;display:grid;gap:8px}
+.answers li{
+  background:rgba(255,255,255,0.02);
+  padding:12px 14px;
+  border-radius:10px;
+  cursor:pointer;
+  border:1px solid rgba(255,255,255,0.02);
+  display:flex;
+  align-items:center;
+}
+.answers li:hover{transform:translateY(-2px);transition:all .12s}
+.answers li.correct{background:linear-gradient(90deg,var(--success),#059669);border-color:rgba(5,150,105,0.12)}
+.answers li.wrong{background:linear-gradient(90deg,var(--danger),#ef4444);border-color:rgba(239,68,68,0.12)}
+.answers li span.choice-key{
+  display:inline-block;width:30px;height:30px;border-radius:8px;margin-right:12px;background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;color:var(--muted)
+}
+
+.muted{color:var(--muted);font-size:.9rem}
+.credits{text-align:center;background:transparent;border:none;color:var(--muted)}
+
+/* Badges */
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.badge{
+  padding:8px 12px;border-radius:999px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.03);
+  display:inline-flex;align-items:center;gap:8px;font-weight:600;color:var(--muted)
+}
+.badge.good{background:linear-gradient(90deg,#06b6d4,#7c3aed);color:white}
+
+/* History */
+.history-list{display:grid;gap:8px}
+.history-item{padding:10px;border-radius:10px;background:rgba(255,255,255,0.01);display:flex;justify-content:space-between;align-items:center}
+.review-panel{margin-top:12px;padding:12px;background:rgba(255,255,255,0.01);border-radius:10px}
+
+/* Responsive */
+@media (max-width:640px){
+  .controls{flex-direction:column;align-items:stretch}
+  .meta{flex-direction:column;gap:6px}
+}

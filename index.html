@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Smart Quiz System</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <h1>Smart Quiz System</h1>
+    <p class="subtitle">Learn. Play. Improve.</p>
+  </header>
+
+  <main class="container" id="app">
+    <!-- Welcome / Setup Screen -->
+    <section id="welcome" class="card">
+      <h2>Welcome</h2>
+      <p>Transforming learning into a gamified quiz experience. Enter your name to start:</p>
+      <label class="input-group">
+        <input id="playerName" type="text" placeholder="Your name" aria-label="Enter your name" />
+      </label>
+
+      <div class="controls">
+        <label>
+          Category:
+          <select id="categorySelect" aria-label="Select category">
+            <option value="all">All</option>
+            <option value="math">Math</option>
+            <option value="science">Science</option>
+            <option value="history">History</option>
+          </select>
+        </label>
+
+        <label>
+          Questions:
+          <select id="countSelect" aria-label="Select number of questions">
+            <option value="5">5</option>
+            <option value="10" selected>10</option>
+            <option value="15">15</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="controls">
+        <button id="startBtn" class="btn primary">Start Quiz</button>
+        <button id="viewProgressBtn" class="btn">View Progress</button>
+      </div>
+
+      <p class="muted">Hint: Use keyboard (1-4) to choose options. Feedback and badges are stored locally.</p>
+    </section>
+
+    <!-- Quiz Screen -->
+    <section id="quiz" class="card hidden" aria-live="polite">
+      <div class="quiz-top">
+        <div class="player">
+          <span id="playerLabel"></span>
+        </div>
+        <div class="status">
+          <div class="progress-bar" aria-hidden="true">
+            <div id="progressFill" class="progress-fill"></div>
+          </div>
+          <div class="meta">
+            <span id="questionCounter">Question 1/10</span>
+            <span id="timer">00:20</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="questionCard" class="question-card">
+        <h3 id="questionText">Question text</h3>
+        <ul id="answers" class="answers" role="list"></ul>
+      </div>
+
+      <div class="controls">
+        <button id="skipBtn" class="btn">Skip</button>
+        <button id="nextBtn" class="btn primary disabled" disabled>Next</button>
+      </div>
+    </section>
+
+    <!-- Result Screen -->
+    <section id="result" class="card hidden">
+      <h2>Quiz Complete</h2>
+      <p id="resultScore">You scored 0/0</p>
+      <div id="badges" class="badges" aria-live="polite"></div>
+
+      <div class="controls">
+        <button id="retryBtn" class="btn">Retry</button>
+        <button id="homeBtn" class="btn primary">Back to Home</button>
+        <button id="reviewBtn" class="btn">Review Answers</button>
+      </div>
+
+      <details id="reviewPanel" class="review-panel">
+        <summary>Answer Review</summary>
+        <ol id="reviewList"></ol>
+      </details>
+    </section>
+
+    <!-- Progress Modal -->
+    <section id="progress" class="card hidden">
+      <h2>Progress & History</h2>
+      <div id="historyList" class="history-list"></div>
+
+      <div class="controls">
+        <button id="clearHistoryBtn" class="btn danger">Clear History</button>
+        <button id="closeProgressBtn" class="btn primary">Close</button>
+      </div>
+    </section>
+
+    <footer class="card credits">
+      <small>Presented at Frontend Development Frameworks Hackathon — Thanks to my team & mentors!</small>
+    </footer>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
